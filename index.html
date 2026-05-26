@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Study Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#07070f; --s1:#0f0f1a; --s2:#141422; --border:#1e1e32;
+  --gold:#f0c040; --purple:#7b6fff; --green:#1fd48c;
+  --red:#ff5566; --sky:#38b8ff; --orange:#ff8c42;
+  --txt:#e2e2f0; --dim:#4a4a6a; --radius:13px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{font-size:14px}
+body{
+  background:var(--bg);color:var(--txt);
+  font-family:'Inter',sans-serif;
+  min-height:100vh;max-width:420px;margin:0 auto;
+  padding:14px 11px 100px;
+  background-image:
+    radial-gradient(ellipse 70% 35% at 15% 0%,#7b6fff1c 0%,transparent 65%),
+    radial-gradient(ellipse 50% 28% at 85% 95%,#f0c04014 0%,transparent 65%);
+}
+
+/* HEADER */
+.hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.hdr-left h1{
+  font-family:'Syne',sans-serif;font-size:22px;font-weight:800;
+  background:linear-gradient(110deg,var(--gold) 0%,#fff 45%,var(--purple) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  letter-spacing:-0.5px;
+}
+.hdr-left p{font-size:10px;color:var(--dim);letter-spacing:2px;text-transform:uppercase;margin-top:1px;font-family:'JetBrains Mono',monospace}
+.streak-badge{
+  background:linear-gradient(135deg,#ff8c42,#f0c040);
+  border-radius:10px;padding:6px 10px;text-align:center;
+}
+.streak-badge .snum{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:#000;line-height:1}
+.streak-badge .slbl{font-size:8px;font-weight:700;color:#00000088;text-transform:uppercase;letter-spacing:1px}
+
+/* MONTH NAV */
+.mnav{
+  display:flex;align-items:center;
+  background:var(--s1);border:1px solid var(--border);
+  border-radius:var(--radius);padding:7px 9px;
+  margin-bottom:9px;gap:6px;
+}
+.mnbtn{
+  background:var(--s2);border:1px solid var(--border);
+  color:var(--txt);width:32px;height:32px;border-radius:9px;
+  font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .15s;flex-shrink:0;
+}
+.mnbtn:active{background:var(--gold);color:#000;transform:scale(.9)}
+.mlbl{
+  flex:1;text-align:center;
+  font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:var(--gold);
+}
+.tbtn{
+  background:var(--s2);border:1px solid var(--border);
+  color:var(--dim);font-size:9px;font-family:'JetBrains Mono',monospace;
+  padding:4px 7px;border-radius:7px;cursor:pointer;
+  transition:all .15s;text-transform:uppercase;letter-spacing:.5px;
+}
+.tbtn:active{color:var(--gold);border-color:var(--gold)}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:9px}
+.stat{
+  background:var(--s1);border:1px solid var(--border);
+  border-radius:var(--radius);padding:9px 6px;text-align:center;
+  position:relative;overflow:hidden;
+}
+.stat::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--c,var(--gold))}
+.stat:nth-child(2){--c:var(--purple)} .stat:nth-child(3){--c:var(--green)} .stat:nth-child(4){--c:var(--orange)}
+.sv{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:var(--c,var(--gold))}
+.sl{font-size:8px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+
+/* TABS */
+.tabs{display:flex;gap:4px;margin-bottom:9px;background:var(--s1);border:1px solid var(--border);border-radius:var(--radius);padding:4px}
+.tab{
+  flex:1;padding:7px 4px;border-radius:9px;
+  font-size:11px;font-weight:600;text-align:center;cursor:pointer;
+  color:var(--dim);transition:all .2s;border:none;background:transparent;
+  font-family:'Inter',sans-serif;
+}
+.tab.on{background:var(--purple);color:#fff}
+
+/* CALENDAR */
+.cal-wrap{margin-bottom:9px}
+.daynames{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px}
+.dn{text-align:center;font-size:10px;color:var(--dim);font-family:'JetBrains Mono',monospace;padding:3px 0;text-transform:uppercase}
+.calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.dc{
+  background:var(--s1);border:1.5px solid var(--border);
+  border-radius:11px;
+  min-height:46px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .13s;position:relative;overflow:hidden;
+  user-select:none;padding:4px 2px;
+}
+.dc.emp{background:transparent;border-color:transparent;pointer-events:none}
+.dc:active:not(.emp){transform:scale(.88);background:var(--s2)}
+.dc.tod{border-color:var(--gold);background:#f0c04010}
+.dc.tod .dnum{color:var(--gold);font-weight:700}
+.dc.hd{border-color:#7b6fff88}
+.dc.hd .dmin{display:flex}
+
+/* heat colors — removed green, using subtle purple tints */
+.dc.h1{background:#7b6fff08} .dc.h2{background:#7b6fff14} .dc.h3{background:#7b6fff22} .dc.h4{background:#7b6fff33}
+
+.dnum{font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--txt);line-height:1}
+.dmin{font-size:8px;color:var(--purple);font-family:'JetBrains Mono',monospace;margin-top:2px;display:none}
+
+/* HEATMAP legend — hidden now */
+.heatlegend{display:none}
+
+/* SECTION: Subjects */
+.panel{
+  background:var(--s1);border:1px solid var(--border);
+  border-radius:var(--radius);padding:11px;margin-bottom:9px;
+}
+.ptitle{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--dim);margin-bottom:9px;font-family:'JetBrains Mono',monospace}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;min-height:24px}
+.chip{
+  display:flex;align-items:center;gap:4px;
+  background:var(--s2);border:1px solid var(--border);
+  border-radius:100px;padding:4px 9px;font-size:11px;
+}
+.chip .dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.chip .x{color:var(--dim);font-size:13px;cursor:pointer;margin-left:2px;line-height:1}
+.chip .x:hover{color:var(--red)}
+.addrow{display:flex;gap:5px}
+.addrow input{
+  flex:1;background:var(--s2);border:1px solid var(--border);
+  border-radius:9px;color:var(--txt);padding:7px 9px;
+  font-family:'Inter',sans-serif;font-size:12px;outline:none;
+}
+.addrow input:focus{border-color:var(--purple)}
+.addrow input::placeholder{color:var(--dim)}
+.ibtn{
+  border:none;border-radius:9px;padding:7px 12px;
+  font-weight:600;font-size:12px;font-family:'Inter',sans-serif;
+  cursor:pointer;transition:all .13s;white-space:nowrap;
+}
+.ibtn:active{transform:scale(.93);filter:brightness(.88)}
+.ibtn.purple{background:var(--purple);color:#fff}
+.ibtn.gold{background:var(--gold);color:#000}
+.ibtn.ghost{background:var(--s2);color:var(--dim);border:1px solid var(--border)}
+
+/* GOALS */
+.goals-list{display:flex;flex-direction:column;gap:6px}
+.goal-row{
+  display:flex;align-items:center;gap:8px;
+  background:var(--s2);border:1px solid var(--border);
+  border-radius:10px;padding:8px 10px;
+}
+.goal-icon{font-size:14px;flex-shrink:0}
+.goal-info{flex:1;min-width:0}
+.goal-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.goal-track{height:4px;background:var(--border);border-radius:2px;margin-top:4px;overflow:hidden}
+.goal-fill{height:100%;border-radius:2px;background:var(--purple);transition:width .5s ease}
+.goal-pct{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);flex-shrink:0}
+.goal-del{font-size:12px;color:var(--dim);cursor:pointer}
+.goal-del:hover{color:var(--red)}
+.empty-note{color:var(--dim);font-size:11px;text-align:center;padding:8px}
+
+/* BARS */
+.bar-row{display:flex;align-items:center;gap:7px;margin-bottom:7px}
+.bar-lbl{font-size:10px;min-width:64px;display:flex;align-items:center;gap:4px;overflow:hidden}
+.bar-lbl span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-track{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;transition:width .5s ease}
+.bar-val{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);min-width:34px;text-align:right}
+
+/* ── MODAL ── */
+.overlay{
+  position:fixed;inset:0;background:#000000d8;
+  backdrop-filter:blur(12px);z-index:200;
+  display:flex;align-items:flex-end;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .22s;
+}
+.overlay.open{opacity:1;pointer-events:all}
+.modal{
+  background:var(--s1);border:1px solid var(--border);
+  border-radius:20px 20px 0 0;padding:12px 14px 34px;
+  width:100%;max-width:420px;
+  transform:translateY(28px);
+  transition:transform .26s cubic-bezier(.16,1,.3,1);
+}
+.overlay.open .modal{transform:translateY(0)}
+.mhandle{width:32px;height:3px;background:var(--border);border-radius:2px;margin:0 auto 12px}
+.mtop{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px}
+.mdate{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--gold)}
+.mwday{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:1.5px;margin-top:1px;font-family:'JetBrains Mono',monospace}
+.mclose{
+  background:var(--s2);border:1px solid var(--border);
+  color:var(--dim);width:28px;height:28px;border-radius:7px;
+  font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+}
+.mclose:active{color:var(--red)}
+.flabel{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--dim);margin-bottom:5px;font-family:'JetBrains Mono',monospace}
+
+/* TIME CONTROL */
+.time-ctrl{
+  display:flex;align-items:center;gap:8px;
+  background:var(--s2);border:1px solid var(--border);
+  border-radius:12px;padding:7px;margin-bottom:5px;
+}
+.hbtn{
+  width:40px;height:40px;
+  background:var(--bg);border:1px solid var(--border);
+  color:var(--txt);border-radius:10px;font-size:20px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .13s;flex-shrink:0;
+}
+.hbtn:active{background:var(--gold);color:#000;transform:scale(.88)}
+.time-display{flex:1;text-align:center}
+.time-big{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:600;color:var(--green);line-height:1}
+.time-small{font-size:9px;color:var(--dim);font-family:'JetBrains Mono',monospace;margin-top:1px}
+
+/* QUICK TIME GRID */
+.qgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:10px}
+.qbtn{
+  background:var(--s2);border:1px solid var(--border);
+  color:var(--dim);border-radius:7px;padding:5px 2px;
+  font-size:10px;font-family:'JetBrains Mono',monospace;
+  cursor:pointer;text-align:center;transition:all .13s;
+}
+.qbtn:active{background:var(--purple);color:#fff;border-color:var(--purple)}
+.qbtn.sel{background:var(--purple);color:#fff;border-color:var(--purple)}
+
+/* SUBJECT SELECT */
+.msubjs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
+.sbtn{
+  display:flex;align-items:center;gap:4px;
+  padding:5px 9px;border-radius:100px;
+  border:1.5px solid var(--border);
+  background:var(--s2);color:var(--dim);
+  font-size:11px;cursor:pointer;transition:all .13s;
+  font-family:'Inter',sans-serif;
+}
+.sbtn.on{background:#ffffff0d}
+.sbtn:active{transform:scale(.92)}
+
+/* NOTES */
+.notes-inp{
+  width:100%;background:var(--s2);border:1px solid var(--border);
+  border-radius:9px;color:var(--txt);padding:8px 9px;
+  font-family:'Inter',sans-serif;font-size:12px;outline:none;
+  resize:none;margin-bottom:12px;height:52px;transition:border-color .2s;
+}
+.notes-inp:focus{border-color:var(--purple)}
+.notes-inp::placeholder{color:var(--dim)}
+.mactions{display:flex;gap:7px}
+.mactions .ibtn{flex:1;padding:12px;font-size:13px;border-radius:11px}
+
+/* GOAL MODAL */
+.gmodal{
+  background:var(--s1);border:1px solid var(--border);
+  border-radius:20px 20px 0 0;padding:12px 14px 34px;
+  width:100%;max-width:420px;
+  transform:translateY(28px);
+  transition:transform .26s cubic-bezier(.16,1,.3,1);
+}
+.overlay.open .gmodal{transform:translateY(0)}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:18px;left:50%;
+  transform:translateX(-50%) translateY(50px);
+  background:var(--green);color:#000;
+  font-weight:700;font-size:12px;
+  padding:9px 20px;border-radius:100px;
+  z-index:999;transition:transform .26s cubic-bezier(.16,1,.3,1);
+  pointer-events:none;
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* BOTTOM TABS */
+.bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;
+  display:flex;justify-content:center;
+  padding:0 0 env(safe-area-inset-bottom,0) 0;
+  background:var(--s1);border-top:1px solid var(--border);
+  z-index:100;
+}
+.bnav-inner{display:flex;width:100%;max-width:420px}
+.bnav-item{
+  flex:1;padding:10px 4px 12px;text-align:center;
+  cursor:pointer;transition:all .15s;border:none;background:none;
+  font-family:'Inter',sans-serif;
+}
+.bnav-icon{font-size:18px;margin-bottom:2px}
+.bnav-lbl{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;transition:color .15s}
+.bnav-item.on .bnav-lbl{color:var(--purple)}
+.bnav-item.on .bnav-icon{filter:drop-shadow(0 0 6px var(--purple))}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-left">
+    <h1>📚 StudyLog</h1>
+    <p>Track · Focus · Grow</p>
+  </div>
+  <div class="streak-badge">
+    <div class="snum" id="streakNum">0</div>
+    <div class="slbl">🔥 Streak</div>
+  </div>
+</div>
+
+<!-- MONTH NAV -->
+<div class="mnav">
+  <button class="mnbtn" id="prevM">‹</button>
+  <div class="mlbl" id="mlbl"></div>
+  <button class="tbtn" id="todayBtn">Today</button>
+  <button class="mnbtn" id="nextM">›</button>
+</div>
+
+<!-- STATS (4 cards) -->
+<div class="stats">
+  <div class="stat"><div class="sv" id="sHrs">0</div><div class="sl">Hours</div></div>
+  <div class="stat"><div class="sv" id="sDays">0</div><div class="sl">Days</div></div>
+  <div class="stat"><div class="sv" id="sAvg">0</div><div class="sl">Avg/d</div></div>
+  <div class="stat"><div class="sv" id="sBest">0</div><div class="sl">Best</div></div>
+</div>
+
+<!-- PAGE TABS -->
+<div class="tabs">
+  <button class="tab on" onclick="showTab('cal',this)">📅 Calendar</button>
+  <button class="tab" onclick="showTab('subj',this)">📖 Subjects</button>
+  <button class="tab" onclick="showTab('goals',this)">🎯 Goals</button>
+  <button class="tab" onclick="showTab('stats',this)">📊 Stats</button>
+</div>
+
+<!-- TAB: CALENDAR -->
+<div id="tabCal">
+  <div class="heatlegend">
+    <span>Less</span>
+    <div class="hbox" style="background:var(--s2);border:1px solid var(--border)"></div>
+    <div class="hbox" style="background:#1fd48c14"></div>
+    <div class="hbox" style="background:#1fd48c2a"></div>
+    <div class="hbox" style="background:#1fd48c3a"></div>
+    <div class="hbox" style="background:#1fd48c55"></div>
+    <span>More</span>
+  </div>
+  <div class="cal-wrap">
+    <div class="daynames">
+      <div class="dn">Su</div><div class="dn">Mo</div><div class="dn">Tu</div>
+      <div class="dn">We</div><div class="dn">Th</div><div class="dn">Fr</div><div class="dn">Sa</div>
+    </div>
+    <div class="calgrid" id="calGrid"></div>
+  </div>
+</div>
+
+<!-- TAB: SUBJECTS -->
+<div id="tabSubj" style="display:none">
+  <div class="panel">
+    <div class="ptitle">My Subjects</div>
+    <div class="chips" id="chipsList"></div>
+    <div class="addrow">
+      <input type="text" id="newSubj" placeholder="Add subject…" maxlength="18">
+      <button class="ibtn purple" onclick="addSubject()">+ Add</button>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="ptitle">This Month — Hours per Subject</div>
+    <div id="bars"></div>
+  </div>
+</div>
+
+<!-- TAB: GOALS -->
+<div id="tabGoals" style="display:none">
+  <div class="panel">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px">
+      <div class="ptitle" style="margin:0">Weekly Goals (hrs)</div>
+      <button class="ibtn purple" style="padding:5px 10px;font-size:11px" onclick="openGoalModal()">+ New</button>
+    </div>
+    <div class="goals-list" id="goalsList"></div>
+  </div>
+  <div class="panel">
+    <div class="ptitle">Daily Target</div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim)">Daily goal:</div>
+      <input type="range" id="dailyTarget" min="30" max="600" step="30" value="120"
+        style="flex:1;accent-color:var(--purple)" oninput="updateDailyTarget()">
+      <div id="dtVal" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gold);min-width:40px;text-align:right">2h</div>
+    </div>
+    <div style="height:5px;background:var(--border);border-radius:3px;margin-top:8px;overflow:hidden">
+      <div id="dtBar" style="height:100%;background:var(--gold);border-radius:3px;width:0%;transition:width .5s"></div>
+    </div>
+    <div id="dtNote" style="font-size:10px;color:var(--dim);margin-top:5px;font-family:'JetBrains Mono',monospace"></div>
+  </div>
+</div>
+
+<!-- TAB: STATS -->
+<div id="tabStats" style="display:none">
+  <div class="panel">
+    <div class="ptitle">Best Study Days This Month</div>
+    <div id="topDays"></div>
+  </div>
+  <div class="panel">
+    <div class="ptitle">Weekly Summary</div>
+    <div id="weekBars"></div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <div class="bnav-inner">
+    <button class="bnav-item on" onclick="showTab('cal',this)" data-tab="cal">
+      <div class="bnav-icon">📅</div><div class="bnav-lbl">Calendar</div>
+    </button>
+    <button class="bnav-item" onclick="showTab('subj',this)" data-tab="subj">
+      <div class="bnav-icon">📖</div><div class="bnav-lbl">Subjects</div>
+    </button>
+    <button class="bnav-item" onclick="showTab('goals',this)" data-tab="goals">
+      <div class="bnav-icon">🎯</div><div class="bnav-lbl">Goals</div>
+    </button>
+    <button class="bnav-item" onclick="showTab('stats',this)" data-tab="stats">
+      <div class="bnav-icon">📊</div><div class="bnav-lbl">Stats</div>
+    </button>
+  </div>
+</div>
+
+<!-- ENTRY MODAL -->
+<div class="overlay" id="overlay" onclick="oclick(event)">
+  <div class="modal">
+    <div class="mhandle"></div>
+    <div class="mtop">
+      <div><div class="mdate" id="mDate"></div><div class="mwday" id="mWday"></div></div>
+      <button class="mclose" onclick="closeModal()">✕</button>
+    </div>
+
+    <div class="flabel">⏱ Time Studied</div>
+    <div class="time-ctrl">
+      <button class="hbtn" id="minusBtn" onclick="changeMin(-10)">−</button>
+      <div class="time-display">
+        <div class="time-big" id="tBig">0:00</div>
+        <div class="time-small" id="tSmall">0 hours 0 min</div>
+      </div>
+      <button class="hbtn" id="plusBtn" onclick="changeMin(10)">+</button>
+    </div>
+    <!-- fine control -->
+    <div style="display:flex;gap:4px;margin-bottom:8px">
+      <button class="ibtn ghost" style="flex:1;padding:5px;font-size:10px" onclick="changeMin(-1)">− 1 min</button>
+      <button class="ibtn ghost" style="flex:1;padding:5px;font-size:10px" onclick="changeMin(1)">+ 1 min</button>
+    </div>
+
+    <div class="flabel">⚡ Quick Set</div>
+    <div class="qgrid" id="qgrid"></div>
+
+    <div class="flabel">📚 Subjects</div>
+    <div class="msubjs" id="mSubjs"></div>
+
+    <div class="flabel">📝 Notes</div>
+    <textarea class="notes-inp" id="mNotes" placeholder="What did you study?"></textarea>
+
+    <div class="mactions">
+      <button class="ibtn ghost" onclick="closeModal()">Cancel</button>
+      <button class="ibtn gold" onclick="saveEntry()">Save ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- GOAL MODAL -->
+<div class="overlay" id="govl" onclick="gOvlClick(event)">
+  <div class="gmodal">
+    <div class="mhandle"></div>
+    <div class="mtop">
+      <div><div class="mdate" style="font-size:16px">New Goal</div><div class="mwday">Weekly target</div></div>
+      <button class="mclose" onclick="closeGoalModal()">✕</button>
+    </div>
+    <div class="flabel">Goal Name</div>
+    <input type="text" id="gName" placeholder="e.g. Study 10 hrs/week" maxlength="30"
+      style="width:100%;background:var(--s2);border:1px solid var(--border);border-radius:9px;color:var(--txt);padding:8px 9px;font-family:'Inter',sans-serif;font-size:13px;outline:none;margin-bottom:10px">
+    <div class="flabel">Target (hours/week)</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+      <input type="range" id="gTarget" min="1" max="40" step="0.5" value="10"
+        style="flex:1;accent-color:var(--purple)" oninput="document.getElementById('gTargetVal').textContent=this.value+'h'">
+      <div id="gTargetVal" style="font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--gold);min-width:36px;text-align:right">10h</div>
+    </div>
+    <div class="flabel">Icon</div>
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px" id="iconPicker">
+      <span style="font-size:18px;cursor:pointer" onclick="pickIcon(this)">🎯</span>
+      <span style="font-size:18px;cursor:pointer" onclick="pickIcon(this)">📖</span>
+      <span style="font-size:18px;cursor:pointer" onclick="pickIcon(this)">🧠</span>
+      <span style="font-size:18px;cursor:pointer" onclick="pickIcon(this)">💡</span>
+      <span style="font-size:18px;cursor:pointer" onclick="pickIcon(this)">🚀</span>
+      <span style="font-size:18px;cursor:pointer" onclick="pickIcon(this)">⚡</span>
+      <span style="font-size:18px;cursor:pointer" onclick="pickIcon(this)">🌟</span>
+      <span style="font-size:18px;cursor:pointer" onclick="pickIcon(this)">🏆</span>
+    </div>
+    <div class="mactions">
+      <button class="ibtn ghost" onclick="closeGoalModal()">Cancel</button>
+      <button class="ibtn gold" onclick="saveGoal()">Add Goal ✓</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Saved ✓</div>
+
+<script>
+const COLORS=['#7b6fff','#1fd48c','#f0c040','#ff5566','#38b8ff','#ff8c42','#a29bfe','#fd79a8','#55efc4'];
+const WDAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const QSETS=[10,20,30,45,60,90,120,150,180,240,300,360]; // minutes
+
+let store  = JSON.parse(localStorage.getItem('sl_data')||'{}');
+let subjs  = JSON.parse(localStorage.getItem('sl_subjs')||'["Math","Science","English","History"]');
+let goals  = JSON.parse(localStorage.getItem('sl_goals')||'[]');
+let dailyT = parseInt(localStorage.getItem('sl_daily')||'120'); // minutes
+
+const now  = new Date();
+let vY=now.getFullYear(), vM=now.getMonth();
+let mDay, mMins=0, mSubs=[], activeTab='cal', selIcon='🎯';
+
+function persist(){ localStorage.setItem('sl_data',JSON.stringify(store)); localStorage.setItem('sl_subjs',JSON.stringify(subjs)); localStorage.setItem('sl_goals',JSON.stringify(goals)); localStorage.setItem('sl_daily',dailyT); }
+function key(y,m,d){ return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`; }
+function fmtMin(m){ if(m<60) return m+'m'; const h=Math.floor(m/60),r=m%60; return r?`${h}h${r}m`:`${h}h`; }
+
+// TAB SWITCHING
+function showTab(t, btn){
+  ['cal','subj','goals','stats'].forEach(id=>{
+    const el=document.getElementById('tab'+id.charAt(0).toUpperCase()+id.slice(1));
+    if(el) el.style.display='none';
+  });
+  const el=document.getElementById('tab'+t.charAt(0).toUpperCase()+t.slice(1));
+  if(el) el.style.display='block';
+  activeTab=t;
+  // update top tabs
+  document.querySelectorAll('.tabs .tab').forEach(b=>b.classList.remove('on'));
+  document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('on'));
+  if(btn){
+    btn.classList.add('on');
+    // sync bottom nav
+    document.querySelectorAll('.bnav-item').forEach(b=>{ if(b.dataset.tab===t) b.classList.add('on'); });
+    // sync top tabs
+    document.querySelectorAll('.tabs .tab').forEach((b,i)=>{
+      const tabs=['cal','subj','goals','stats'];
+      if(tabs[i]===t) b.classList.add('on');
+    });
+  }
+  renderTab();
+}
+
+function renderTab(){
+  if(activeTab==='cal'){ renderCal(); }
+  if(activeTab==='subj'){ renderChips(); renderBars(); }
+  if(activeTab==='goals'){ renderGoals(); renderDailyTarget(); }
+  if(activeTab==='stats'){ renderTopDays(); renderWeekBars(); }
+}
+
+function render(){
+  document.getElementById('mlbl').textContent=MONTHS[vM].toUpperCase().slice(0,3)+' '+vY;
+  renderStats(); renderStreak(); renderTab();
+}
+
+// STATS
+function renderStats(){
+  let tot=0,days=0,best=0;
+  for(let d=1;d<=31;d++){
+    const e=store[key(vY,vM,d)];
+    if(e&&e.m>0){ tot+=e.m; days++; if(e.m>best) best=e.m; }
+  }
+  document.getElementById('sHrs').textContent=fmtMin(tot);
+  document.getElementById('sDays').textContent=days;
+  document.getElementById('sAvg').textContent=days?fmtMin(Math.round(tot/days)):'0';
+  document.getElementById('sBest').textContent=best?fmtMin(best):'0';
+}
+
+// STREAK
+function renderStreak(){
+  let streak=0;
+  const d=new Date(now);
+  while(true){
+    const k=key(d.getFullYear(),d.getMonth(),d.getDate());
+    if(store[k]&&store[k].m>0){ streak++; d.setDate(d.getDate()-1); }
+    else break;
+    if(streak>365) break;
+  }
+  document.getElementById('streakNum').textContent=streak;
+}
+
+// CALENDAR
+function renderCal(){
+  const g=document.getElementById('calGrid'); g.innerHTML='';
+  const fd=new Date(vY,vM,1).getDay();
+  const dim=new Date(vY,vM+1,0).getDate();
+  const todK=key(now.getFullYear(),now.getMonth(),now.getDate());
+  // find max for heatmap
+  let maxM=0;
+  for(let d=1;d<=dim;d++){ const e=store[key(vY,vM,d)]; if(e&&e.m>maxM) maxM=e.m; }
+
+  for(let i=0;i<fd;i++){ const e=document.createElement('div'); e.className='dc emp'; g.appendChild(e); }
+  for(let d=1;d<=dim;d++){
+    const k=key(vY,vM,d); const ent=store[k];
+    const el=document.createElement('div'); el.className='dc';
+    if(k===todK) el.classList.add('tod');
+    if(ent&&ent.m>0){
+      el.classList.add('hd');
+      const ratio=ent.m/maxM;
+      if(ratio>.75) el.classList.add('h4');
+      else if(ratio>.5) el.classList.add('h3');
+      else if(ratio>.25) el.classList.add('h2');
+      else el.classList.add('h1');
+    }
+    el.innerHTML=`<div class="dnum">${d}</div>${ent&&ent.m>0?`<div class="dmin">${fmtMin(ent.m)}</div>`:''}`;
+    el.onclick=()=>openModal(d);
+    g.appendChild(el);
+  }
+}
+
+// CHIPS
+function renderChips(){
+  document.getElementById('chipsList').innerHTML=subjs.length
+    ?subjs.map((s,i)=>`<div class="chip"><span class="dot" style="background:${COLORS[i%COLORS.length]}"></span>${s}<span class="x" onclick="rmSubj(${i})">×</span></div>`).join('')
+    :'<div class="empty-note">No subjects yet</div>';
+}
+
+// BARS
+function renderBars(){
+  const tot={}; subjs.forEach(s=>tot[s]=0);
+  for(let d=1;d<=31;d++){
+    const e=store[key(vY,vM,d)];
+    if(e&&e.ss&&e.m>0) e.ss.forEach(s=>{ if(tot[s]!==undefined) tot[s]+=e.m/e.ss.length; });
+  }
+  const mx=Math.max(...Object.values(tot),1);
+  document.getElementById('bars').innerHTML=subjs.length
+    ?subjs.map((s,i)=>`
+      <div class="bar-row">
+        <div class="bar-lbl"><span style="width:5px;height:5px;border-radius:50%;background:${COLORS[i%COLORS.length]};display:inline-block;flex-shrink:0"></span><span>${s.length>8?s.slice(0,8)+'…':s}</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:${tot[s]/mx*100}%;background:${COLORS[i%COLORS.length]}"></div></div>
+        <div class="bar-val">${fmtMin(Math.round(tot[s]))}</div>
+      </div>`).join('')
+    :'<div class="empty-note">Add subjects to see breakdown</div>';
+}
+
+// GOALS
+function renderGoals(){
+  const el=document.getElementById('goalsList');
+  if(!goals.length){ el.innerHTML='<div class="empty-note">No goals yet. Tap + New to add one!</div>'; return; }
+  // calc this week progress
+  const weekStart=new Date(now); weekStart.setDate(now.getDate()-now.getDay()); weekStart.setHours(0,0,0,0);
+  let weekMins=0;
+  for(let i=0;i<7;i++){
+    const d=new Date(weekStart); d.setDate(weekStart.getDate()+i);
+    const e=store[key(d.getFullYear(),d.getMonth(),d.getDate())];
+    if(e&&e.m>0) weekMins+=e.m;
+  }
+  el.innerHTML=goals.map((g,i)=>{
+    const pct=Math.min(100,Math.round(weekMins/g.ss.length/(g.t*60)*100));
+    return `<div class="goal-row">
+      <div class="goal-icon">${g.ic}</div>
+      <div class="goal-info">
+        <div class="goal-name">${g.name}</div>
+        <div class="goal-track"><div class="goal-fill" style="width:${pct}%;background:${pct>=100?'var(--green)':'var(--purple)'}"></div></div>
+        <div style="font-size:9px;color:var(--dim);margin-top:2px;font-family:'JetBrains Mono',monospace">${fmtMin(Math.round(weekMins/g.ss.length))} / ${g.t}h this week</div>
+      </div>
+      <div class="goal-pct" style="color:${pct>=100?'var(--green)':'var(--dim)'}">${pct}%</div>
+      <div class="goal-del" onclick="rmGoal(${i})">×</div>
+    </div>`;
+  }).join('');
+}
+
+function renderDailyTarget(){
+  document.getElementById('dailyTarget').value=dailyT;
+  document.getElementById('dtVal').textContent=fmtMin(dailyT);
+  const todayE=store[key(now.getFullYear(),now.getMonth(),now.getDate())];
+  const todayM=todayE?todayE.m:0;
+  const pct=Math.min(100,Math.round(todayM/dailyT*100));
+  document.getElementById('dtBar').style.width=pct+'%';
+  document.getElementById('dtNote').textContent=`Today: ${fmtMin(todayM)} studied  (${pct}% of daily goal)`;
+}
+
+function updateDailyTarget(){
+  dailyT=parseInt(document.getElementById('dailyTarget').value);
+  document.getElementById('dtVal').textContent=fmtMin(dailyT);
+  persist(); renderDailyTarget();
+}
+
+// TOP DAYS
+function renderTopDays(){
+  const days=[];
+  for(let d=1;d<=31;d++){
+    const e=store[key(vY,vM,d)];
+    if(e&&e.m>0) days.push({d,m:e.m});
+  }
+  days.sort((a,b)=>b.m-a.m);
+  const top=days.slice(0,5);
+  const el=document.getElementById('topDays');
+  if(!top.length){ el.innerHTML='<div class="empty-note">No study sessions this month yet</div>'; return; }
+  const mx=top[0].m;
+  el.innerHTML=top.map((x,i)=>`
+    <div class="bar-row">
+      <div class="bar-lbl" style="min-width:72px"><span style="font-size:10px;color:var(--dim)">${MONTHS[vM].slice(0,3)} ${x.d}</span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${x.m/mx*100}%;background:${['var(--gold)','var(--purple)','var(--green)','var(--sky)','var(--orange)'][i]}"></div></div>
+      <div class="bar-val">${fmtMin(x.m)}</div>
+    </div>`).join('');
+}
+
+// WEEK BARS
+function renderWeekBars(){
+  const weeks={}; const dim=new Date(vY,vM+1,0).getDate();
+  for(let d=1;d<=dim;d++){
+    const dt=new Date(vY,vM,d); const w=Math.ceil(d/7);
+    const e=store[key(vY,vM,d)];
+    if(!weeks[w]) weeks[w]=0;
+    if(e&&e.m>0) weeks[w]+=e.m;
+  }
+  const mx=Math.max(...Object.values(weeks),1);
+  const el=document.getElementById('weekBars');
+  el.innerHTML=Object.entries(weeks).map(([w,m])=>`
+    <div class="bar-row">
+      <div class="bar-lbl" style="min-width:60px"><span style="font-size:10px;color:var(--dim)">Week ${w}</span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${m/mx*100}%;background:var(--purple)"></div></div>
+      <div class="bar-val">${fmtMin(m)}</div>
+    </div>`).join('') || '<div class="empty-note">No data yet</div>';
+}
+
+// SUBJECT MANAGEMENT
+function addSubject(){
+  const inp=document.getElementById('newSubj'); const v=inp.value.trim();
+  if(!v||subjs.includes(v)) return;
+  subjs.push(v); inp.value=''; persist(); renderChips(); renderBars();
+}
+function rmSubj(i){ subjs.splice(i,1); persist(); renderChips(); renderBars(); }
+document.getElementById('newSubj').addEventListener('keydown',e=>{ if(e.key==='Enter') addSubject(); });
+
+// MODAL
+function openModal(day){
+  mDay=day;
+  const k=key(vY,vM,day); const ent=store[k]||{m:0,ss:[],n:''};
+  mMins=ent.m; mSubs=[...(ent.ss||[])];
+  const dt=new Date(vY,vM,day);
+  document.getElementById('mDate').textContent=`${MONTHS[vM]} ${day}, ${vY}`;
+  document.getElementById('mWday').textContent=WDAYS[dt.getDay()];
+  document.getElementById('mNotes').value=ent.n||'';
+  updateTDisp(); buildQGrid(); buildMSubjs();
+  document.getElementById('overlay').classList.add('open');
+}
+
+function buildQGrid(){
+  document.getElementById('qgrid').innerHTML=QSETS.map(m=>`
+    <div class="qbtn ${mMins===m?'sel':''}" onclick="setMin(${m})">${fmtMin(m)}</div>`).join('');
+}
+
+function buildMSubjs(){
+  document.getElementById('mSubjs').innerHTML=subjs.length
+    ?subjs.map((s,i)=>`
+      <button class="sbtn ${mSubs.includes(s)?'on':''}"
+        style="color:${COLORS[i%COLORS.length]};border-color:${mSubs.includes(s)?COLORS[i%COLORS.length]:'var(--border)'}"
+        onclick="togSub('${s}',this,${i})">
+        <span style="width:5px;height:5px;border-radius:50%;background:${COLORS[i%COLORS.length]};display:inline-block"></span>${s}
+      </button>`).join('')
+    :'<div class="empty-note">Add subjects first</div>';
+}
+
+function togSub(s,btn,i){
+  if(mSubs.includes(s)){ mSubs=mSubs.filter(x=>x!==s); btn.classList.remove('on'); btn.style.borderColor='var(--border)'; }
+  else { mSubs.push(s); btn.classList.add('on'); btn.style.borderColor=COLORS[i%COLORS.length]; }
+}
+
+function changeMin(d){ mMins=Math.max(0,Math.min(1440,mMins+d)); updateTDisp(); buildQGrid(); }
+function setMin(m){ mMins=m; updateTDisp(); buildQGrid(); }
+
+function updateTDisp(){
+  const h=Math.floor(mMins/60), m=mMins%60;
+  document.getElementById('tBig').textContent=`${h}:${String(m).padStart(2,'0')}`;
+  document.getElementById('tSmall').textContent=`${h} hr${h!==1?'s':''} ${m} min`;
+}
+
+function closeModal(){ document.getElementById('overlay').classList.remove('open'); }
+function oclick(e){ if(e.target===document.getElementById('overlay')) closeModal(); }
+
+function saveEntry(){
+  const k=key(vY,vM,mDay);
+  store[k]={m:mMins,ss:mSubs,n:document.getElementById('mNotes').value};
+  persist(); closeModal(); render(); toast();
+}
+
+// GOAL MODAL
+function openGoalModal(){ selIcon='🎯'; document.getElementById('govl').classList.add('open'); }
+function closeGoalModal(){ document.getElementById('govl').classList.remove('open'); }
+function gOvlClick(e){ if(e.target===document.getElementById('govl')) closeGoalModal(); }
+function pickIcon(el){ selIcon=el.textContent; document.querySelectorAll('#iconPicker span').forEach(s=>s.style.outline='none'); el.style.outline='2px solid var(--gold)'; el.style.borderRadius='4px'; }
+function saveGoal(){
+  const name=document.getElementById('gName').value.trim();
+  const t=parseFloat(document.getElementById('gTarget').value);
+  if(!name) return;
+  goals.push({name,t,ic:selIcon,ss:[...subjs]});
+  document.getElementById('gName').value='';
+  persist(); closeGoalModal(); renderGoals();
+}
+function rmGoal(i){ goals.splice(i,1); persist(); renderGoals(); }
+
+// TOAST
+function toast(){ const t=document.getElementById('toast'); t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1600); }
+
+// MONTH NAV
+document.getElementById('prevM').onclick=()=>{ vM--; if(vM<0){vM=11;vY--;} render(); };
+document.getElementById('nextM').onclick=()=>{ vM++; if(vM>11){vM=0;vY++;} render(); };
+document.getElementById('todayBtn').onclick=()=>{ vY=now.getFullYear(); vM=now.getMonth(); render(); };
+
+// INIT
+document.getElementById('dailyTarget').value=dailyT;
+render();
+</script>
+</body>
+</html>
